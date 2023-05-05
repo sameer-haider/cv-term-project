@@ -6,17 +6,18 @@ from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 
 # Constants
-TRAIN_PATH = "path/to/train/dataset"
-TEST_PATH = "path/to/test/dataset"
-RESIZED_PATH_200 = "path/to/resized/200"
-RESIZED_PATH_50 = "path/to/resized/50"
-GRAYSCALE_PATH = "path/to/grayscale"
-SIFT_PATH = "path/to/sift"
-HISTOGRAM_PATH = "path/to/histogram"
+TRAIN_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/Train"
+TEST_PATH = "/ProjData/Train/"
+RESIZED_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/200"
+RESIZED_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/50"
+GRAYSCALE_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/grayscale"
+SIFT_PATH = "/ProjData/Train/sift"
+HISTOGRAM_PATH = "/ProjData/Train/histogram"
 
 
 ## 1
 def preprocess_image(image_path):
+    print(image_path)
     # Load the image
     img = cv2.imread(image_path)
 
@@ -84,6 +85,32 @@ def test_classifier(classifier, test_data, test_labels):
 def main():
     # Load training and test datasets, preprocess images, and extract features
     # ...
+    parent_folder = '/Users/sanjith/Desktop/cv-term-project/ProjData/Train'
+    folder_name_list = ['bedroom', 'Coast', 'Forest']
+    for folder_name in os.listdir(parent_folder):
+        # Check if the current item in the folder is a folder
+        if folder_name in folder_name_list:
+            folder_path = os.path.join(parent_folder, folder_name)
+        else:
+            continue
+        print(f"folder_path: {folder_path}")
+        if os.path.isdir(folder_path):
+        # Loop through the files in the current folder
+            for filename in os.listdir(folder_path):
+                # Perform operations on the file
+                print(f"filename: {filename}")
+                img_path = os.path.join(folder_path, filename)
+
+                gray, resized_200, resized_50 = preprocess_image(img_path)
+                new_filename_gray = 'gray_' + filename
+                new_filename_200 = 'resized_200_' + filename
+                new_filename_50 = 'resized_50_' + filename
+                new_img_path_200 = os.path.join(RESIZED_PATH_200, new_filename_200)
+                new_img_path_50 = os.path.join(RESIZED_PATH_50, new_filename_50)
+                new_img_path_gray = os.path.join(GRAYSCALE_PATH, new_filename_gray)
+                cv2.imwrite(new_img_path_gray, gray)
+                cv2.imwrite(new_img_path_200, resized_200)
+                cv2.imwrite(new_img_path_50, resized_50)
 
     # Train classifiers with different representations and methods
     # ...
@@ -91,8 +118,6 @@ def main():
     # Test the classifiers using test images and report results
     # ...
 
-    # Write a report and analyze the results
-    # ...
 
     return
 
