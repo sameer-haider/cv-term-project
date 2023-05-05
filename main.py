@@ -11,7 +11,7 @@ TEST_PATH = "/ProjData/Train/"
 RESIZED_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/200"
 RESIZED_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/50"
 GRAYSCALE_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/grayscale"
-SIFT_PATH = "/ProjData/Train/sift"
+SIFT_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/sift"
 HISTOGRAM_PATH = "/ProjData/Train/histogram"
 
 
@@ -39,14 +39,16 @@ def preprocess_image(image_path):
 
 
 ## 2
-def extract_sift_features(gray_image):
+def extract_sift_features(gray_image, file_name):
     # Initialize SIFT feature extractor
     sift = cv2.SIFT_create()
-
     # Compute SIFT features
-    _, descriptors = sift.detectAndCompute(gray_image, None)
+    kp, des = sift.detectAndCompute(gray_image, None)
 
-    return descriptors
+    # Save the SIFT features to a file
+    # Save the descriptors to a file
+    desc_path = os.path.join(SIFT_PATH, file_name.replace('.jpg', '.txt'))
+    np.savetxt(desc_path, des)
 
 
 ## 3
@@ -85,6 +87,7 @@ def test_classifier(classifier, test_data, test_labels):
 def main():
     # Load training and test datasets, preprocess images, and extract features
     # ...
+    """
     parent_folder = '/Users/sanjith/Desktop/cv-term-project/ProjData/Train'
     folder_name_list = ['bedroom', 'Coast', 'Forest']
     for folder_name in os.listdir(parent_folder):
@@ -111,13 +114,18 @@ def main():
                 cv2.imwrite(new_img_path_gray, gray)
                 cv2.imwrite(new_img_path_200, resized_200)
                 cv2.imwrite(new_img_path_50, resized_50)
+    """
 
     # Train classifiers with different representations and methods
     # ...
 
     # Test the classifiers using test images and report results
     # ...
-
+    for file_name in os.listdir(GRAYSCALE_PATH):
+        image_path = os.path.join(GRAYSCALE_PATH, file_name)
+        gray_image = cv2.imread(image_path)
+        img = extract_sift_features(gray_image, file_name)
+        pass
 
     return
 
