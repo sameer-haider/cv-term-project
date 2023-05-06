@@ -12,7 +12,7 @@ RESIZED_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/200"
 RESIZED_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/50"
 GRAYSCALE_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/grayscale"
 SIFT_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/sift"
-HISTOGRAM_PATH = "/ProjData/Train/histogram"
+HISTOGRAM_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/histogram"
 
 
 ## 1
@@ -47,8 +47,18 @@ def extract_sift_features(gray_image, file_name):
 
     # Save the SIFT features to a file
     # Save the descriptors to a file
-    desc_path = os.path.join(SIFT_PATH, file_name.replace('.jpg', '.txt'))
-    np.savetxt(desc_path, des)
+    desc_path_sift = os.path.join(SIFT_PATH, file_name.replace('.jpg', '.txt'))
+    np.savetxt(desc_path_sift, des)
+
+    # histogram
+    # Calculate a histogram of the SIFT descriptors
+    hist = cv2.calcHist([des], [0], None, [256], [0, 256])
+
+    # Normalize the histogram to values between 0 and 1
+    hist = cv2.normalize(hist, hist)
+    desc_path_hist = os.path.join(HISTOGRAM_PATH, file_name.replace('.jpg', '.txt'))
+    np.savetxt(desc_path_hist, hist)
+
 
 
 ## 3
