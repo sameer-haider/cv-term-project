@@ -8,16 +8,27 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 # Constants
 TRAIN_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/Train"
 TEST_PATH = "/ProjData/Train/"
-RESIZED_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/200"
-RESIZED_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/50"
-GRAYSCALE_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/grayscale"
+
+RESIZED_BEDROOM_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/bedroom/200"
+RESIZED_BEDROOM_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/bedroom/50"
+BEDROOM_PATH_GRAY = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/bedroom/gray"
+
+RESIZED_COAST_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/Coast/200"
+RESIZED_COAST_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/Coast/50"
+COAST_PATH_GRAY = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/Coast/gray"
+
+RESIZED_FOREST_PATH_200 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/Forest/200"
+RESIZED_FOREST_PATH_50 = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/Forest/50"
+FOREST_PATH_GRAY = "/Users/sanjith/Desktop/cv-term-project/ProjData/resized/Forest/gray"
+
 SIFT_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/sift"
 HISTOGRAM_PATH = "/Users/sanjith/Desktop/cv-term-project/ProjData/histogram"
 
+img_features = []
+target_lables = []
 
 ## 1
 def preprocess_image(image_path):
-    print(image_path)
     # Load the image
     img = cv2.imread(image_path)
 
@@ -38,7 +49,7 @@ def preprocess_image(image_path):
     return gray, resized_200, resized_50
 
 
-## 2
+## 2 and 3
 def extract_sift_features(gray_image, file_name):
     # Initialize SIFT feature extractor
     sift = cv2.SIFT_create()
@@ -60,28 +71,52 @@ def extract_sift_features(gray_image, file_name):
     np.savetxt(desc_path_hist, hist)
 
 
-
-## 3
-def extract_histogram_features(gray_image, bins=16):
-    # Calculate the histogram
-    hist = cv2.calcHist([gray_image], [0], None, [bins], [0, 256])
-
-    # Normalize the histogram
-    hist = cv2.normalize(hist, hist)
-
-    return hist.flatten()
-
-
 ## 4
-def train_classifier(training_data, training_labels, classifier_type="knn"):
-    if classifier_type == "knn":
-        classifier = KNeighborsClassifier(n_neighbors=5)
-    elif classifier_type == "svm":
-        classifier = LinearSVC()
+def train_classifier_nn():
+    features = []
+    target_labels = []
+    class_names = ['bedroom', 'Coast', 'Forest']
+    folder_path = '/Users/sanjith/Desktop/cv-term-project/ProjData/resized'
+    # Loop through each class folder and read all images inside
+    for i, class_name in enumerate(class_names):
+        images_path = os.path.join(folder_path, class_name, '50')
+        for img_name in os.listdir(images_path):
+            img_path = os.path.join(images_path, img_name)
+            # Load image and resize it to 50x50 pixels
+            image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            # Flatten the image pixel values to a 1D array and add to features list
+            img_features = image.flatten()
+            features.append(img_features)
+            # Add the target label for the class to the target_labels list
+            target_labels.append(i)
 
-    classifier.fit(training_data, training_labels)
-    return classifier
+    knn = KNeighborsClassifier(n_neighbors=5)
+    knn.fit(features, target_labels)
 
+
+    # Testing data preparation
+    test_data = []
+    test_labels = []
+
+    for label, folder_name in enumerate(['bedroom', 'Coast', 'Forest']):
+        folder_path = os.path.join('/Users/sanjith/Desktop/cv-term-project/ProjData/Train', folder_name)
+        for img_name in os.listdir(folder_path):
+            img_path = os.path.join(folder_path, img_name)
+            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            img = cv2.resize(img, (50, 50))
+            test_data.append(img.flatten())
+            test_labels.append(label)
+
+    test_data = np.array(test_data, dtype=np.float32)
+    test_labels = np.array(test_labels)
+
+    # Nearest Neighbor classifier testing
+    result = knn.predict(test_data)
+
+    # Compute accuracy
+    correct = np.count_nonzero(result == test_labels)
+    accuracy = correct * 100.0 / len(test_labels)
+    print('Accuracy: {:.2f}%'.format(accuracy))
 
 ## 5
 def test_classifier(classifier, test_data, test_labels):
@@ -98,6 +133,7 @@ def main():
     # Load training and test datasets, preprocess images, and extract features
     # ...
     """
+    
     parent_folder = '/Users/sanjith/Desktop/cv-term-project/ProjData/Train'
     folder_name_list = ['bedroom', 'Coast', 'Forest']
     for folder_name in os.listdir(parent_folder):
@@ -106,21 +142,37 @@ def main():
             folder_path = os.path.join(parent_folder, folder_name)
         else:
             continue
-        print(f"folder_path: {folder_path}")
         if os.path.isdir(folder_path):
         # Loop through the files in the current folder
             for filename in os.listdir(folder_path):
                 # Perform operations on the file
-                print(f"filename: {filename}")
                 img_path = os.path.join(folder_path, filename)
 
                 gray, resized_200, resized_50 = preprocess_image(img_path)
                 new_filename_gray = 'gray_' + filename
                 new_filename_200 = 'resized_200_' + filename
                 new_filename_50 = 'resized_50_' + filename
-                new_img_path_200 = os.path.join(RESIZED_PATH_200, new_filename_200)
-                new_img_path_50 = os.path.join(RESIZED_PATH_50, new_filename_50)
-                new_img_path_gray = os.path.join(GRAYSCALE_PATH, new_filename_gray)
+
+                dir_200 = ""
+                dir_50 = ""
+                dir_gray = ""
+
+                if folder_name == 'bedroom':
+                    dir_200 = RESIZED_BEDROOM_PATH_200
+                    dir_50 = RESIZED_BEDROOM_PATH_50
+                    dir_gray = BEDROOM_PATH_GRAY
+                elif folder_name == 'Coast':
+                    dir_200 = RESIZED_COAST_PATH_200
+                    dir_50 = RESIZED_COAST_PATH_50
+                    dir_gray = COAST_PATH_GRAY
+                elif folder_name == 'Forest':
+                    dir_200 = RESIZED_FOREST_PATH_200
+                    dir_50 = RESIZED_FOREST_PATH_50
+                    dir_gray = FOREST_PATH_GRAY
+                
+                new_img_path_200 = os.path.join(dir_200, new_filename_200)
+                new_img_path_50 = os.path.join(dir_50, new_filename_50)
+                new_img_path_gray = os.path.join(dir_gray, new_filename_gray)
                 cv2.imwrite(new_img_path_gray, gray)
                 cv2.imwrite(new_img_path_200, resized_200)
                 cv2.imwrite(new_img_path_50, resized_50)
@@ -128,15 +180,11 @@ def main():
 
     # Train classifiers with different representations and methods
     # ...
+    train_classifier_nn()
 
     # Test the classifiers using test images and report results
     # ...
-    for file_name in os.listdir(GRAYSCALE_PATH):
-        image_path = os.path.join(GRAYSCALE_PATH, file_name)
-        gray_image = cv2.imread(image_path)
-        img = extract_sift_features(gray_image, file_name)
-        pass
-
+    
     return
 
 
